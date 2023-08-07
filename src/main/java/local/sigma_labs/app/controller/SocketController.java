@@ -15,8 +15,8 @@ import java.util.UUID;
 
 @Controller
 public class SocketController {
-    //@Value("${stomp.websocket.private.destination}")
-    //private  String PRIVATE_DESTINATION_ENDPOINT;
+    @Value("${stomp.websocket.private.destination}")
+    private  String PRIVATE_DESTINATION_ENDPOINT;
 
     @Value("${stomp.websocket.public.destination}")
     private  String PUBLIC_DESTINATION_ENDPOINT;

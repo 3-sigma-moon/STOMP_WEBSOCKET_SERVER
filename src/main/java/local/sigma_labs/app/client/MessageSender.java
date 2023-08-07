@@ -30,7 +30,7 @@ public class MessageSender {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    @Scheduled(fixedDelay = 3000)
+    @Scheduled(fixedDelay = 100)
     private void sendMessageOnPrivateChannel() {
         Message message = new Message(UUID.randomUUID(),
                 "SENDING MESSAGE FROM SERVER ON PRIVATE CHANNEL",
@@ -38,7 +38,7 @@ public class MessageSender {
                 new Date());
         //logger.info("Message sent {}",message);
         String messageKey="sigma-keys"+UUID.randomUUID();
-        this.kafkaTemplate.send(kafkaInputTopic,messageKey,message.toString());
-        this.messagingTemplate.convertAndSend(PRIVATE_DESTINATION_ENDPOINT, message);
+        //this.kafkaTemplate.send(kafkaInputTopic,messageKey,message.toString());
+        //this.messagingTemplate.convertAndSend(PRIVATE_DESTINATION_ENDPOINT, message);
     }
 }
