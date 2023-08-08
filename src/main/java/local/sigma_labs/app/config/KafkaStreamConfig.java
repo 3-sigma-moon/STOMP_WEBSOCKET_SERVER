@@ -32,62 +32,40 @@ public class KafkaStreamConfig {
     private String kafkaAudioOutputTopic;
 
 
-
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootStrapServerAddress;
+    private final Properties props;
 
-    //@Value("${spring.kafka.producer.key-serializer}")
-    //private String STRING_SERIALIZER;
-
-
-    @Bean
-    public KStream<String, String> kStreamText() {
-        Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "sigma-labs-texts");
+    public KafkaStreamConfig() {
+        this.props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "sigma-labs-broker");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootStrapServerAddress);
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        // props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, "local.sigma_labs.app.config.MessageDeserializer");
+    }
+
+    public KStream<String, String> buildKafkaStream(String inputTopic, String outputTopic) {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
-        final KStream<String, String> stream = streamsBuilder.stream(kafkaTextInputTopic,
+        final KStream<String, String> stream = streamsBuilder.stream(inputTopic,
                 Consumed.with(Serdes.String(), Serdes.String()));
-        stream.map(KeyValue::pair).to(kafkaTextOutputTopic, Produced.with(Serdes.String(), Serdes.String()));
-        KafkaStreams streams = new KafkaStreams(streamsBuilder.build(), props);
+        stream.map(KeyValue::pair).to(outputTopic, Produced.with(Serdes.String(), Serdes.String()));
+        KafkaStreams streams = new KafkaStreams(streamsBuilder.build(), this.props);
         streams.start();
         return stream;
+    }
+
+    @Bean
+    public KStream<String, String> kStreamText() {
+        return buildKafkaStream(kafkaTextInputTopic, kafkaTextOutputTopic);
     }
 
     @Bean
     public KStream<String, String> kStreamImage() {
-        Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "sigma-labs-images");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootStrapServerAddress);
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        // props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, "local.sigma_labs.app.config.MessageDeserializer");
-        StreamsBuilder streamsBuilder = new StreamsBuilder();
-        final KStream<String, String> stream = streamsBuilder.stream(kafkaImageInputTopic,
-                Consumed.with(Serdes.String(), Serdes.String()));
-        stream.map(KeyValue::pair).to(kafkaImageOutputTopic, Produced.with(Serdes.String(), Serdes.String()));
-        KafkaStreams streams = new KafkaStreams(streamsBuilder.build(), props);
-        streams.start();
-        return stream;
+        return buildKafkaStream(kafkaImageInputTopic, kafkaImageOutputTopic);
     }
 
     @Bean
     public KStream<String, String> kStreamAudio() {
-        Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "sigma-labs-audios");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootStrapServerAddress);
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        // props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, "local.sigma_labs.app.config.MessageDeserializer");
-        StreamsBuilder streamsBuilder = new StreamsBuilder();
-        final KStream<String, String> stream = streamsBuilder.stream(kafkaAudioInputTopic,
-                Consumed.with(Serdes.String(), Serdes.String()));
-        stream.map(KeyValue::pair).to(kafkaAudioOutputTopic, Produced.with(Serdes.String(), Serdes.String()));
-        KafkaStreams streams = new KafkaStreams(streamsBuilder.build(), props);
-        streams.start();
-        return stream;
+        return buildKafkaStream(kafkaAudioInputTopic, kafkaAudioOutputTopic);
     }
 }
