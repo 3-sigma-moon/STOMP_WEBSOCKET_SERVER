@@ -16,37 +16,25 @@ import java.util.UUID;
 
 @Controller
 public class SocketController {
-
     @Value("${spring.kafka.text.input-topic}")
     private String kafkaTextInputTopic;
     @Value("${spring.kafka.image.input-topic}")
     private String kafkaImageInputTopic;
     @Value("${spring.kafka.audio.input-topic}")
     private String kafkaAudioInputTopic;
-
-    @Value("${stomp.websocket.private.destination.text}")
-    private String PRIVATE_TEXT_DESTINATION_ENDPOINT;
-    @Value("${stomp.websocket.private.destination.image}")
-    private String PRIVATE_IMAGE_DESTINATION_ENDPOINT;
-    @Value("${stomp.websocket.private.destination.audio}")
-    private String PRIVATE_AUDIO_DESTINATION_ENDPOINT;
-
     @Value("${stomp.websocket.public.destination}")
     private String PUBLIC_DESTINATION_ENDPOINT;
-
     private final static Logger logger = LoggerFactory.getLogger(SocketController.class);
     private final SimpMessagingTemplate simpMessagingTemplate;
-
     private final KafkaTemplate<String, String> kafkaTemplateT;
     private final KafkaTemplate<String, byte[]> kafkaTemplateI;
-    private final KafkaTemplate<String, String> kafkaTemplateA;
+    private final KafkaTemplate<String, byte[]> kafkaTemplateA;
 
     @Autowired
     public SocketController(SimpMessagingTemplate simpMessagingTemplate,
                             KafkaTemplate<String, String> kafkaTemplateT,
                             KafkaTemplate<String, byte[]> kafkaTemplateI,
-                            KafkaTemplate<String, String> kafkaTemplateA
-    ) {
+                            KafkaTemplate<String, byte[]> kafkaTemplateA) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.kafkaTemplateT = kafkaTemplateT;
         this.kafkaTemplateI = kafkaTemplateI;
@@ -55,35 +43,41 @@ public class SocketController {
 
     @MessageMapping("/private-channel-text")
     public void textReception(String message) {
-        String messageKey = "sigma-keys" + UUID.randomUUID();
-        this.kafkaTemplateT.send(kafkaTextInputTopic, messageKey, message);
-        logger.info("Message Received  {}", message);
+        this.sendPayloadToKafka("text", message);
     }
 
-    //STRING PAYLOAD WILL BE REPLACED WITH BINARY DATA PAYLOAD
-    // FOR BLOB IMAGE FILE SENT
-    //THEN WILL GET BYTES FORM THIS
-    // AND TRANSFORM IT INTO STRING TO BE PASSED TO KAFKA TEMPLATE
-    // AND STORE IN MONGO ...
     @MessageMapping("/private-channel-image")
     public void imageReception(@Payload byte[] imageFile) {
-        logger.info("Message Received  {}", imageFile.clone());
-        String messageKey = "sigma-keys" + UUID.randomUUID();
-        this.kafkaTemplateI.send(kafkaImageInputTopic, messageKey, imageFile.clone());
+        this.sendPayloadToKafka("image", imageFile);
     }
 
-    //STRING PAYLOAD WILL BE REPLACED WITH BINARY DATA PAYLOAD
-    // FOR BLOB AUDIO FILE SENT
-    //THEN WILL GET BYTES FORM THIS
-    // AND TRANSFORM IT INTO STRING TO BE PASSED TO KAFKA TEMPLATE
-    // AND STORE IN MONGO ...
     @MessageMapping("/private-channel-audio")
-    public void audioReception(String message) {
-        String messageKey = "sigma-keys" + UUID.randomUUID();
-        this.kafkaTemplateA.send(kafkaAudioInputTopic, messageKey, message);
-        logger.info("Message Received  {}", message);
+    public void audioReception(@Payload byte[] audioFile) {
+        this.sendPayloadToKafka("audio", audioFile);
     }
 
+    public void sendPayloadToKafka(String channel, Object payload) {
+        String messageKey = "sigma-keys" + UUID.randomUUID();
+        String info = "";
+        switch (channel) {
+            case "text" -> {
+                this.kafkaTemplateT.send(kafkaTextInputTopic, messageKey, (String) payload);
+                info += "Text Message Received  {}";
+                logger.info(info,payload);
+            }
+            case "image" -> {
+                this.kafkaTemplateI.send(kafkaImageInputTopic, messageKey, (byte[]) payload);
+                info += "Image File  Received As Byte Array  {}";
+                logger.info(info,payload);
+            }
+            case "audio" -> {
+                this.kafkaTemplateA.send(kafkaAudioInputTopic, messageKey, (byte[]) payload);
+                info += "Audio File  Received As Byte Array  {}";
+                logger.info(info,payload);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + channel);
+        }
+    }
 
     @MessageMapping("/public-channel")
     public void sayHelloPublic(@Payload Message message) {
