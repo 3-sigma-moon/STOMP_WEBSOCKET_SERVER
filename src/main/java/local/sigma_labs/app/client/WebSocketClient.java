@@ -2,7 +2,6 @@ package local.sigma_labs.app.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -19,10 +18,7 @@ import java.util.concurrent.TimeoutException;
 @EnableScheduling
 public class WebSocketClient {
 
-    @Value("${stomp.websocket.private.destination}")
-    private static String PRIVATE_DESTINATION_ENDPOINT;
-    @Value("${stomp.websocket.server.address}")
-    private static String WEBSOCKET_ADDRESS;
+
     private static final Logger logger = LoggerFactory.getLogger(WebSocketClient.class);
 
     public static void main(String[] args) throws ExecutionException, InterruptedException, TimeoutException {

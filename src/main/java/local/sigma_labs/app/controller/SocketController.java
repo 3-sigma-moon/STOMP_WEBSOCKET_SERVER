@@ -11,6 +11,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+
 import java.util.UUID;
 
 @Controller
@@ -37,13 +38,13 @@ public class SocketController {
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     private final KafkaTemplate<String, String> kafkaTemplateT;
-    private final KafkaTemplate<String, String> kafkaTemplateI;
+    private final KafkaTemplate<String, byte[]> kafkaTemplateI;
     private final KafkaTemplate<String, String> kafkaTemplateA;
 
     @Autowired
     public SocketController(SimpMessagingTemplate simpMessagingTemplate,
                             KafkaTemplate<String, String> kafkaTemplateT,
-                            KafkaTemplate<String, String> kafkaTemplateI,
+                            KafkaTemplate<String, byte[]> kafkaTemplateI,
                             KafkaTemplate<String, String> kafkaTemplateA
     ) {
         this.simpMessagingTemplate = simpMessagingTemplate;
@@ -65,10 +66,10 @@ public class SocketController {
     // AND TRANSFORM IT INTO STRING TO BE PASSED TO KAFKA TEMPLATE
     // AND STORE IN MONGO ...
     @MessageMapping("/private-channel-image")
-    public void imageReception(String message) {
+    public void imageReception(@Payload byte[] imageFile) {
+        logger.info("Message Received  {}", imageFile.clone());
         String messageKey = "sigma-keys" + UUID.randomUUID();
-        this.kafkaTemplateI.send(kafkaImageInputTopic, messageKey, message);
-        logger.info("Message Received  {}", message);
+        this.kafkaTemplateI.send(kafkaImageInputTopic, messageKey, imageFile.clone());
     }
 
     //STRING PAYLOAD WILL BE REPLACED WITH BINARY DATA PAYLOAD

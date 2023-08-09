@@ -28,28 +28,24 @@ public class KafkaTopicConfig {
     }
 
     @Bean
-    public NewTopic createInputTopicI() {
-        return new NewTopic(kafkaImageInputTopic, 1, (short) 1);
-    }
-
-    @Bean
-    public NewTopic createInputTopicA() {
-        return new NewTopic(kafkaAudioInputTopic, 1, (short) 1);
-    }
-
-    @Bean
     public NewTopic createOutputTopicT() {
         return new NewTopic(kafkaTextOutputTopic, 1, (short) 1);
     }
 
     @Bean
-    public NewTopic createOutputTopicI() {
-        return new NewTopic(kafkaImageOutputTopic, 1, (short) 1);
+    public NewTopic createInputTopicI() {
+        return new NewTopic(kafkaImageInputTopic, 1, (short) 1);
     }
-
+    @Bean
+    public NewTopic createOutputTopicI() {return new NewTopic(kafkaImageOutputTopic, 1, (short) 1);}
+    @Bean
+    public NewTopic createInputTopicA() {
+        return new NewTopic(kafkaAudioInputTopic, 1, (short) 1);
+    }
     @Bean
     public NewTopic createOutputTopicA() {
         return new NewTopic(kafkaAudioOutputTopic, 1, (short) 1);
     }
+
 
 }
