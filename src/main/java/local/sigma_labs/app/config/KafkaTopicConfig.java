@@ -4,7 +4,6 @@ import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 @Configuration
 public class KafkaTopicConfig {
@@ -15,7 +14,6 @@ public class KafkaTopicConfig {
     private String kafkaImageInputTopic;
     @Value("${spring.kafka.audio.input-topic}")
     private String kafkaAudioInputTopic;
-
     @Value("${spring.kafka.text.output-topic}")
     private String kafkaTextOutputTopic;
     @Value("${spring.kafka.image.output-topic}")

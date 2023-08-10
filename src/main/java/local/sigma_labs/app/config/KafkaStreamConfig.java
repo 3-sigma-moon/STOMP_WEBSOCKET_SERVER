@@ -11,7 +11,6 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 import java.util.Properties;
 
@@ -33,18 +32,21 @@ public class KafkaStreamConfig {
     private String kafkaAudioOutputTopic;
 
     private final Properties propsStringString;
-    private final Properties propsStringByteArray;
+    private final Properties propsStringByteArrayI;
+    private final Properties propsStringByteArrayA;
 
 
     public KafkaStreamConfig() {
         this.propsStringString = new Properties();
-        this.propsStringByteArray = new Properties();
-        this.setProperties(this.propsStringString, Serdes.String().getClass(), Serdes.String().getClass());
-        this.setProperties(this.propsStringByteArray, Serdes.String().getClass(), Serdes.ByteArray().getClass());
+        this.propsStringByteArrayI = new Properties();
+        this.propsStringByteArrayA = new Properties();
+        this.setProperties(this.propsStringString, Serdes.String().getClass(), Serdes.String().getClass(), "sigma-labs-texts");
+        this.setProperties(this.propsStringByteArrayI, Serdes.String().getClass(), Serdes.ByteArray().getClass(), "sigma-labs-images");
+        this.setProperties(this.propsStringByteArrayA, Serdes.String().getClass(), Serdes.ByteArray().getClass(), "sigma-labs-audios");
     }
 
-    public void setProperties(Properties properties, Class<?> KeySerdesClass, Class<?> ValueSerdesClass) {
-        properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "sigma-labs-brokers");
+    public void setProperties(Properties properties, Class<?> KeySerdesClass, Class<?> ValueSerdesClass, String Id) {
+        properties.put(StreamsConfig.APPLICATION_ID_CONFIG, Id);
         properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, KeySerdesClass);
         properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, ValueSerdesClass);
@@ -60,13 +62,18 @@ public class KafkaStreamConfig {
         return stream;
     }
 
-    public KStream<String, byte[]> buildKafkaStreamStringByteArray(String inputTopic, String outputTopic) {
+    public KStream<String, byte[]> buildKafkaStreamStringByteArray(String inputTopic, String outputTopic, String kind) {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         final KStream<String, byte[]> stream = streamsBuilder.stream(inputTopic,
                 Consumed.with(Serdes.String(), Serdes.ByteArray()));
         stream.map(KeyValue::pair).to(outputTopic, Produced.with(Serdes.String(), Serdes.ByteArray()));
-        KafkaStreams streams = new KafkaStreams(streamsBuilder.build(), this.propsStringByteArray);
-        streams.start();
+        if (kind.equals("image")) {
+            KafkaStreams streams = new KafkaStreams(streamsBuilder.build(), this.propsStringByteArrayI);
+            streams.start();
+        } else {
+            KafkaStreams streams = new KafkaStreams(streamsBuilder.build(), this.propsStringByteArrayA);
+            streams.start();
+        }
         return stream;
     }
 
@@ -77,11 +84,11 @@ public class KafkaStreamConfig {
 
     @Bean
     public KStream<String, byte[]> kStreamImage() {
-        return buildKafkaStreamStringByteArray(kafkaImageInputTopic, kafkaImageOutputTopic);
+        return buildKafkaStreamStringByteArray(kafkaImageInputTopic, kafkaImageOutputTopic,"image");
     }
 
     @Bean
-    public KStream<String, String> kStreamAudio() {
-        return buildKafkaStreamStringString(kafkaAudioInputTopic, kafkaAudioOutputTopic);
+    public KStream<String, byte[]> kStreamAudio() {
+        return buildKafkaStreamStringByteArray(kafkaAudioInputTopic, kafkaAudioOutputTopic,"audio");
     }
 }
