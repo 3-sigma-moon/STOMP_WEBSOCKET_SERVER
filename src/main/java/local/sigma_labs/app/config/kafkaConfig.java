@@ -26,6 +26,8 @@ public class kafkaConfig {
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ValueSerializerClass);
+        config.put("message.max.bytes", 1048576000);
+        config.put(ProducerConfig.MAX_REQUEST_SIZE_CONFIG,1048576000);
         return config;
     }
 

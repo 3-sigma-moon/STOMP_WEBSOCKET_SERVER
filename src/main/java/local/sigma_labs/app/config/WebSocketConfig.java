@@ -25,9 +25,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final String[] brokerDestinationPrefixes = {"/topic", "/queue"};
     private final String[] applicationDestinationPrefixes = {"/app", "/api"};
     private final String[] StompRegistryEndpoints = {"/private-channel-text",
-            "/private-channel-image",
-            "/private-channel-audio",
-            "/public-channel"};
+                                                    "/private-channel-image",
+                                                    "/private-channel-audio",
+                                                    "/public-channel"};
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker(brokerDestinationPrefixes);
